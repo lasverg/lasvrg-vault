@@ -1,0 +1,354 @@
+{
+  "info": {
+    "name": "Lasverg Service Core API",
+    "description": "Backend API for lasverg.io service",
+    "version": "0.0.1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string",
+      "description": "JWT access token obtained from sign in"
+    },
+    {
+      "key": "username",
+      "value": "testuser",
+      "type": "string",
+      "description": "Username for profile operations"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Sign In",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Store access token from response if sign in is successful",
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.accessToken) {",
+                  "        pm.collectionVariables.set('accessToken', responseJson.accessToken);",
+                  "        console.log('Access token saved to collection variables');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"Test123!@#\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/signin",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "signin"]
+            },
+            "description": "Authenticate user with username and password. Returns access token and sets HTTP-only cookies. The access token is automatically saved to collection variables for use in other requests."
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/validate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "validate"]
+            },
+            "description": "Check if the current access token is valid. Will attempt to refresh if access token is expired but refresh token is valid."
+          },
+          "response": []
+        },
+        {
+          "name": "Sign Out",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/signout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "signout"]
+            },
+            "description": "Sign out user and clear authentication cookies."
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication endpoints for user login, token validation, and logout."
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"username\": \"testuser\",\n  \"firstname\": \"John\",\n  \"lastname\": \"Doe\",\n  \"password\": \"Test123!@#\",\n  \"confirmPassword\": \"Test123!@#\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/user/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "user", "register"]
+            },
+            "description": "Register a new user account. Password must be at least 8 characters with uppercase, lowercase, number, and symbol. A default profile is automatically created for the new user."
+          },
+          "response": []
+        }
+      ],
+      "description": "User registration and management endpoints."
+    },
+    {
+      "name": "User Profile",
+      "item": [
+        {
+          "name": "View User Profile (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profiles/:username",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "profiles", ":username"],
+              "variable": [
+                {
+                  "key": "username",
+                  "value": "{{username}}",
+                  "description": "Username to retrieve profile for"
+                }
+              ]
+            },
+            "description": "View any user's profile information by username. Returns profile data including bio, links, avatar, and cover images. This endpoint is public and does not require authentication."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/profiles/testuser",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "profiles", "testuser"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"bio\": \"Software engineer passionate about building great products\",\n    \"links\": [\n      {\n        \"platform\": \"GitHub\",\n        \"url\": \"https://github.com/username\"\n      },\n      {\n        \"platform\": \"LinkedIn\",\n        \"url\": \"https://linkedin.com/in/username\"\n      }\n    ],\n    \"avatar\": \"https://example.com/avatar.jpg\",\n    \"cover\": \"https://example.com/cover.jpg\",\n    \"createdAt\": \"2023-01-01T00:00:00.000Z\",\n    \"updatedAt\": \"2023-01-15T00:00:00.000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "description": "Access token for authentication"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "profile"]
+            },
+            "description": "Get your own profile information. Requires authentication. Returns your profile data including bio, links, avatar, and cover images."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/profile",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "profile"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"bio\": \"Software engineer passionate about building great products\",\n    \"links\": [\n      {\n        \"platform\": \"GitHub\",\n        \"url\": \"https://github.com/username\"\n      },\n      {\n        \"platform\": \"LinkedIn\",\n        \"url\": \"https://linkedin.com/in/username\"\n      }\n    ],\n    \"avatar\": \"https://example.com/avatar.jpg\",\n    \"cover\": \"https://example.com/cover.jpg\",\n    \"createdAt\": \"2023-01-01T00:00:00.000Z\",\n    \"updatedAt\": \"2023-01-15T00:00:00.000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create User Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "description": "Access token for authentication"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"Software engineer passionate about building great products and learning new technologies. I love working with modern JavaScript frameworks and backend APIs.\",\n  \"links\": [\n    {\n      \"platform\": \"GitHub\",\n      \"url\": \"https://github.com/username\"\n    },\n    {\n      \"platform\": \"LinkedIn\",\n      \"url\": \"https://linkedin.com/in/username\"\n    },\n    {\n      \"platform\": \"Twitter\",\n      \"url\": \"https://twitter.com/username\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "profile"]
+            },
+            "description": "Create a new user profile (Note: A default profile is automatically created during user registration). User is identified by the authentication token. Bio is required (10-500 characters). Links are optional (max 10). Avatar and cover images are handled via separate upload endpoints."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"bio\": \"Software engineer passionate about building great products\",\n  \"links\": [\n    {\n      \"platform\": \"GitHub\",\n      \"url\": \"https://github.com/username\"\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/profile",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "profile"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Profile created successfully\",\n  \"data\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"bio\": \"Software engineer passionate about building great products\",\n    \"links\": [\n      {\n        \"platform\": \"GitHub\",\n        \"url\": \"https://github.com/username\"\n      }\n    ],\n    \"createdAt\": \"2023-01-01T00:00:00.000Z\",\n    \"updatedAt\": \"2023-01-01T00:00:00.000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "description": "Access token for authentication"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"Updated bio: Senior software engineer with expertise in full-stack development, passionate about creating scalable applications.\",\n  \"links\": [\n    {\n      \"platform\": \"GitHub\",\n      \"url\": \"https://github.com/newusername\"\n    },\n    {\n      \"platform\": \"LinkedIn\",\n      \"url\": \"https://linkedin.com/in/newusername\"\n    },\n    {\n      \"platform\": \"Website\",\n      \"url\": \"https://myportfolio.com\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "profile"]
+            },
+            "description": "Update existing user profile information. User is identified by the authentication token. At least one field (bio or links) must be provided. All fields are optional for updates."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"bio\": \"Updated bio information\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/profile",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "profile"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Profile updated successfully\",\n  \"data\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"bio\": \"Updated bio information\",\n    \"links\": [\n      {\n        \"platform\": \"GitHub\",\n        \"url\": \"https://github.com/username\"\n      }\n    ],\n    \"createdAt\": \"2023-01-01T00:00:00.000Z\",\n    \"updatedAt\": \"2023-01-15T00:00:00.000Z\"\n  }\n}"
+            }
+          ]
+        }
+      ],
+      "description": "User profile management endpoints for creating, reading, and updating user profiles. Includes bio, social links, and metadata. Avatar and cover image uploads are handled separately."
+    }
+  ],
+  "auth": {
+    "type": "noauth"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    }
+  ]
+}
